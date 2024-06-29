@@ -359,7 +359,7 @@ class ChatManager {
 				}
 			}
 
-			$alreadyNotifiedUsers = $this->notifier->notifyMentionedUsers($chat, $comment, $alreadyNotifiedUsers, $silent);
+			$alreadyNotifiedUsers = $this->notifier->notifyMentionedUsers($chat, $comment, $alreadyNotifiedUsers, $silent, $participant);
 			if (!empty($alreadyNotifiedUsers)) {
 				$userIds = array_column($alreadyNotifiedUsers, 'id');
 				$this->participantService->markUsersAsMentioned($chat, Attendee::ACTOR_USERS, $userIds, (int) $comment->getId(), $usersDirectlyMentioned);
@@ -942,6 +942,10 @@ class ChatManager {
 		if ($room->getType() === Room::TYPE_ONE_TO_ONE) {
 			return $results;
 		}
+		if ($room->getMentionPermissions() === Room::MENTION_PERMISSIONS_MODERATORS && !$participant->hasModeratorPermissions()) {
+			return $results;
+		}
+
 		$attendee = $participant->getAttendee();
 		if ($attendee->getActorType() === Attendee::ACTOR_USERS) {
 			$roomDisplayName = $room->getDisplayName($attendee->getActorId());

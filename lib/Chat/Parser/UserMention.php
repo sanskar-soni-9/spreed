@@ -90,8 +90,14 @@ class UserMention implements IEventListener {
 			return mb_strlen($m2['id']) <=> mb_strlen($m1['id']);
 		});
 
+		$actor = $this->participantService->getParticipantByActor($chatMessage->getRoom(), $chatMessage->getActorType(), $chatMessage->getActorId());
+		$onlyModsCanMentionAll = $chatMessage->getRoom()->getMentionPermissions() === Room::MENTION_PERMISSIONS_MODERATORS;
 		foreach ($mentions as $mention) {
 			if ($mention['type'] === 'user' && $mention['id'] === 'all') {
+				if ($onlyModsCanMentionAll && !$actor->hasModeratorPermissions()) {
+					continue;
+				}
+
 				$mention['type'] = 'call';
 			}
 
